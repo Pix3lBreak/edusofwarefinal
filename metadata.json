@@ -1,0 +1,6 @@
+{
+  "name": "EduControl - Sistema Integral de Gestión Educativa",
+  "description": "Sistema de gestión escolar web multiplataforma con módulos de alumnos, docentes, calificaciones, asistencias, pagos, horarios, comunicados, reportes PDF/Excel y seguridad.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

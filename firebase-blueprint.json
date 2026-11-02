@@ -1,0 +1,92 @@
+{
+  "entities": {
+    "user": {
+      "title": "User Profile",
+      "description": "User profile authenticated via Firebase Google Auth or institutional credentials",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "User UID from Firebase Auth"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "name": {
+          "type": "string",
+          "description": "User full name"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["superadmin", "director", "docente", "estudiante", "padre", "cajero"],
+          "description": "Role determining permissions and access control. Only pixelglez1988@gmail.com is superadmin."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["activo", "inactivo", "pendiente"],
+          "description": "Account status: 'pendiente' (standby waiting for admin approval), 'activo' or 'inactivo'"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Profile picture URL"
+        },
+        "googlePicture": {
+          "type": "string",
+          "description": "Google profile photo URL"
+        },
+        "isGoogleLinked": {
+          "type": "boolean",
+          "description": "Whether account is authenticated via Google"
+        },
+        "googleSub": {
+          "type": "string",
+          "description": "Google Subject Identifier"
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Google email verification status"
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "ISO timestamp of last login"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of account creation"
+        }
+      },
+      "required": ["id", "email", "name", "role", "status"]
+    },
+    "admin": {
+      "title": "Admin Record",
+      "description": "Institutional superadmin configuration record",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Admin UID"
+        },
+        "email": {
+          "type": "string",
+          "description": "Admin email: pixelglez1988@gmail.com"
+        },
+        "role": {
+          "type": "string",
+          "description": "superadmin"
+        }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "Collection of user profiles in the institution"
+    },
+    "/admins/{adminId}": {
+      "schema": "admin",
+      "description": "Institutional administrative security records"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Sole Superadmin is pixelglez1988@gmail.com
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'pixelglez1988@gmail.com' && request.auth.token.email_verified == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'email', 'name', 'role', 'status']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.role in ['superadmin', 'director', 'docente', 'estudiante', 'padre', 'cajero'] &&
+             data.status in ['activo', 'inactivo', 'pendiente'];
+    }
+
+    // User Profiles Collection
+    match /users/{userId} {
+      // Owner or Admin can read user profiles
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.id == request.auth.uid || isAdmin());
+      
+      // Auto-profile creation on first Google Sign-In or Registration:
+      // If user is pixelglez1988@gmail.com -> role is superadmin, status is activo.
+      // ALL other users -> status MUST be 'pendiente' (standby waiting for superadmin activation), role cannot be superadmin.
+      allow create: if isSignedIn() && 
+                    isOwner(userId) && 
+                    isValidUser(incoming()) && 
+                    incoming().id == request.auth.uid &&
+                    (
+                      (request.auth.token.email == 'pixelglez1988@gmail.com' && incoming().role == 'superadmin' && incoming().status == 'activo') ||
+                      (request.auth.token.email != 'pixelglez1988@gmail.com' && incoming().role != 'superadmin' && incoming().status == 'pendiente')
+                    );
+
+      // Updates:
+      // The superadmin (pixelglez1988@gmail.com) has full power to approve, assign roles, activate or deactivate accounts.
+      // Regular users can only update personal details (name, avatarUrl, phone) and CANNOT change their role or status.
+      allow update: if isSignedIn() && 
+                    isValidUser(incoming()) && 
+                    (
+                      isAdmin() || 
+                      (
+                        isOwner(userId) &&
+                        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'avatarUrl', 'googlePicture', 'lastLogin', 'isGoogleLinked', 'emailVerified', 'phone']) &&
+                        incoming().role == existing().role &&
+                        incoming().status == existing().status
+                      )
+                    );
+
+      allow delete: if isAdmin() && existing().email != 'pixelglez1988@gmail.com';
+    }
+
+    // Admins Collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}

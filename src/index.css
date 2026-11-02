@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Opciones desplegables en todos los roles y menús: fondo oscuro con letras blancas */
+select {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #334155 !important;
+}
+
+select option,
+select optgroup {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  padding: 10px 14px !important;
+}
+
+select option:checked {
+  background-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+select option:hover,
+select option:focus {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+select:focus {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 1px !important;
+}
